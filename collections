@@ -1,0 +1,136 @@
+fun Shop.getSetOfCustomers(): Set<Customer> =
+        customers.toSet()
+----------------------------------
+fun Shop.getCustomersSortedByOrders(): List<Customer> =
+        customers.sortedByDescending { it.orders.size }
+----------------------------------
+  // Find all the different cities the customers are from
+fun Shop.getCustomerCities(): Set<City> =
+        customers.map { it.city }.toSet()
+
+// Find the customers living in a given city
+fun Shop.getCustomersFrom(city: City): List<Customer> =
+        customers.filter { it.city == city }
+-------------------------------------
+  // Return true if all customers are from a given city
+fun Shop.checkAllCustomersAreFrom(city: City): Boolean =
+        customers
+    	.filter { it.city != city }
+        .isEmpty()
+
+// Return true if there is at least one customer from a given city
+fun Shop.hasCustomerFrom(city: City): Boolean =
+        customers
+    	.filter { it.city == city }
+        .isNotEmpty()
+
+// Return the number of customers from a given city
+fun Shop.countCustomersFrom(city: City): Int =
+        customers
+    	.filter { it.city == city }
+        .size
+
+// Return a customer who lives in a given city, or null if there is none
+fun Shop.findCustomerFrom(city: City): Customer? =
+        customers
+    	.filter { it.city == city }
+    	.firstOrNull()
+---------------------------------------------------
+// Build a map from the customer name to the customer
+fun Shop.nameToCustomerMap(): Map<String, Customer> =
+        customers.associateBy(Customer::name)
+
+// Build a map from the customer to their city
+fun Shop.customerToCityMap(): Map<Customer, City> =
+        customers.associateWith(Customer::city)
+
+// Build a map from the customer name to their city
+fun Shop.customerNameToCityMap(): Map<String, City> =
+        customers.associate { it.name to it.city }
+-------------------------------------------------------
+fun Shop.groupCustomersByCity(): Map<City, List<Customer>> =
+        customers.groupBy { it.city }
+--------------------------------------------------------
+fun Shop.getCustomersWithMoreUndeliveredOrders(): Set<Customer> = 
+    customers.filter {
+    val (delivered, undelivered) = it.orders.partition { it.isDelivered }
+    undelivered.size > delivered.size
+}.toSet()
+-----------------------------------------------------------
+fun Customer.getOrderedProducts(): List<Product> =
+        orders.flatMap(Order::products)
+
+// Return all products that were ordered by at least one customer
+fun Shop.getOrderedProducts(): Set<Product> =
+        customers.flatMap(Customer::getOrderedProducts).toSet()
+------------------------------------------------------------
+fun Shop.getCustomerWithMaxOrders(): Customer? =
+        customers.maxByOrNull { it.orders.size }
+
+// Return the most expensive product that has been ordered by the given customer
+fun getMostExpensiveProductBy(customer: Customer): Product? =
+        customer.orders
+                .flatMap(Order::products)
+                .maxByOrNull(Product::price)
+------------------------------------------------------------
+  fun moneySpentBy(customer: Customer): Double =
+        customer.orders.flatMap { it.products }.sumOf { it.price }
+-------------------------------------------------------------------
+fun Shop.getProductsOrderedByAll(): Set<Product> =customers.map(Customer::getOrderedProducts).reduce { orderedByAll, customer ->
+        orderedByAll.intersect(customer)
+    }
+
+fun Customer.getOrderedProducts(): Set<Product> =
+    orders.flatMap(Order::products).toSet()
+-----------------------------------------------------------------------
+fun findMostExpensiveProductBy(customer: Customer): Product? {
+    return customer
+        .orders
+        .filter(Order::isDelivered)
+        .flatMap(Order::products)
+        .maxByOrNull(Product::price)
+}
+
+// Count the amount of times a product was ordered.
+// Note that a customer may order the same product several times.
+fun Shop.getNumberOfTimesProductWasOrdered(product: Product): Int {
+    return customers
+            .flatMap(Customer::getOrderedProducts)
+            .count { it == product }
+}
+
+fun Customer.getOrderedProducts(): List<Product> =
+        orders.flatMap(Order::products)
+--------------------------------------------------------------------
+// Find the most expensive product among all the delivered products
+// ordered by the customer. Use `Order.isDelivered` flag.
+fun findMostExpensiveProductBy(customer: Customer): Product? {
+    return customer
+            .orders
+            .asSequence()
+            .filter(Order::isDelivered)
+            .flatMap(Order::products)
+            .maxByOrNull(Product::price)
+}
+
+// Count the amount of times a product was ordered.
+// Note that a customer may order the same product several times.
+fun Shop.getNumberOfTimesProductWasOrdered(product: Product): Int {
+    return customers
+            .asSequence()
+            .flatMap(Customer::getOrderedProducts)
+            .count { it == product }
+}
+
+fun Customer.getOrderedProducts(): Sequence<Product> =
+        orders.asSequence().flatMap(Order::products)
+----------------------------------------------------------------
+fun doSomethingWithCollection(collection: Collection<String>): Collection<String>? {
+
+    val groupsByLength = collection.groupBy { s -> s.length }
+
+    val maximumSizeOfGroup = groupsByLength.values.map { group -> group.size }.maxOrNull()
+
+    return groupsByLength.values.firstOrNull { group -> group.size == maximumSizeOfGroup }
+}
+  --------------------------------------
